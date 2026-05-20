@@ -126,23 +126,21 @@
             <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6">
                 
                 <!-- ================= MODE: FRONT-END ================= -->
-                <div id="panel-front-mode" class="page-mode space-y-6 hidden">
-                    <div class="bg-white rounded-2xl p-4 shadow-xs border border-gray-200">
-                        <div class="flex justify-between items-center mb-3">
-                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-border-all text-slate-400"></i> ຜັງໂຕະອາຫານໃນຮ້ານ</h3>
-                            <span id="front-revenue-tag" class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-600/10">ຍອດມື້ນີ້: 0 ກີບ</span>
-                        </div>
-                        <div id="front-table-grid" class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-2"></div>
-                    </div>
-
-                    <div class="flex md:hidden bg-gray-200 p-1 rounded-xl gap-1">
-                        <button id="btn-m-view-menu" onclick="toggleMobileView('menu')" class="flex-1 py-2.5 text-center font-bold text-xs rounded-lg transition-all">
-                            <i class="fa-solid fa-burger mr-1"></i> 1. ເລືອກເມນູ
-                        </button>
-                        <button id="btn-m-view-cart" onclick="toggleMobileView('cart')" class="flex-1 py-2.5 text-center font-bold text-xs rounded-lg transition-all">
-                            <i class="fa-solid fa-cart-shopping mr-1"></i> 2. ບິນອາຫານ (<span id="mobile-cart-count" class="font-extrabold text-orange-600">0</span>)
-                        </button>
-                    </div>
+                <div id="m-sec-menu" class="lg:col-span-7 space-y-4 block">
+    <!-- ຊ່ອງຄົ້ນຫາ -->
+    <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400"></i>
+        <input type="text" id="search-menu" oninput="filterMenu()" placeholder="ຄົ້ນຫາເມນູອາຫານ..." 
+               class="w-full bg-white border border-gray-200 rounded-2xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+    </div>
+    
+    <div id="front-category-tabs" class="flex gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+    
+    <!-- ລາຍການເມນູແບບເລື່ອນໄດ້ -->
+    <div id="front-menu-items" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 overflow-y-auto h-[calc(100vh-350px)] p-1">
+        <!-- ເມນູຈະຖືກ render ມາໃສ່ບ່ອນນີ້ -->
+    </div>
+</div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                         <div id="m-sec-menu" class="lg:col-span-7 space-y-4 block">
@@ -797,6 +795,51 @@
 
         const tDate = new Date();
         document.getElementById('report-date-select').value = `${tDate.getFullYear()}-${String(tDate.getMonth()+1).padStart(2,'0')}-${String(tDate.getDate()).padStart(2,'0')}`;
+// ຟັງຊັນຕອງເມນູ (Search & Filter)
+function filterMenu() {
+    let searchTerm = document.getElementById("search-menu").value.toLowerCase();
+    let filtered = cacheMenu.filter(item => 
+        item.name.toLowerCase().includes(searchTerm) && 
+        (filterCatId === "all" || item.categoryId === filterCatId)
+    );
+    renderMenuGrid(filtered);
+}
+
+// ຟັງຊັນ Render ເມນູໃຫ້ສວຍງາມ
+function renderMenuGrid(items) {
+    let container = document.getElementById("front-menu-items");
+    container.innerHTML = "";
+    
+    items.forEach(item => {
+        let div = document.createElement("div");
+        div.className = "bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-orange-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between";
+        div.onclick = () => addToCart(item);
+        div.innerHTML = `
+            <div>
+                <div class="font-bold text-sm text-slate-800 line-clamp-2">${item.name}</div>
+                <div class="text-orange-600 font-black text-xs mt-2">${item.price.toLocaleString()} ₭</div>
+            </div>
+            <div class="mt-2 text-[10px] text-gray-400 text-right"><i class="fa-solid fa-plus-circle"></i> ເພີ່ມ</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// ຟັງຊັນເພີ່ມເຂົ້າກະຕ່າ
+function addToCart(item) {
+    let exist = activeBasket.find(i => i.id === item.id);
+    if (exist) {
+        exist.qty++;
+    } else {
+        activeBasket.push({...item, qty: 1});
+    }
+    renderCart(); // ຟັງຊັນອັບເດດບິນ
+}
+
+// ອັບເດດຟັງຊັນ renderMenuLayout ໃຫ້ຮອງຮັບການ filter
+function renderMenuLayout() {
+    filterMenu(); 
+}
     </script>
 </body>
 </html>
